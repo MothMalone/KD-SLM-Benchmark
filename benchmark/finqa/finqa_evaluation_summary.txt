@@ -1,0 +1,85 @@
+FinQA Teacher Model Evaluation Summary
+==================================================
+
+Training Set Results:
+  Total samples: 20
+  Correct answers: 5
+  Accuracy: 0.2500 (25.00%)
+
+Validation Set Results:
+  Total samples: 20
+  Correct answers: 2
+  Accuracy: 0.1000 (10.00%)
+
+Training Set Error Examples:
+  Error 1:
+    ID: C/2010/page_272.pdf-1
+    Question: what was the growth rate of the loans held-for-sale that are carried at locom from 2009 to 2010...
+    Ground Truth: 56.25%
+    Predicted: 15.2%
+    Explanation: Numerical comparison: 0.5625 vs 0.152, equivalent=False
+
+  Error 2:
+    ID: ADI/2009/page_49.pdf-1
+    Question: what is the the interest expense in 2009?...
+    Ground Truth: 380
+    Predicted: 2.34%
+    Explanation: Numerical comparison: 380.0 vs 0.023399999999999997, equivalent=False
+
+  Error 3:
+    ID: AAL/2018/page_13.pdf-2
+    Question: what was the total operating expenses in 2018 in millions...
+    Ground Truth: 41932
+    Predicted: $23,353 million
+    Explanation: Numerical comparison: 41932.0 vs 23353000000.0, equivalent=False
+
+  Error 4:
+    ID: ETR/2008/page_313.pdf-3
+    Question: what is the growth rate in net revenue in 2008?...
+    Ground Truth: -3.2%
+    Predicted: -32.9 million
+    Explanation: Text comparison: '-3.2%' vs '-32.9 million', match=False
+
+  Error 5:
+    ID: GIS/2019/page_45.pdf-1
+    Question: in 2019 what was the percent of the net earnings to the net cash provided by operating activities...
+    Ground Truth: 63.6%
+    Predicted: 157%
+    Explanation: Numerical comparison: 0.636 vs 1.57, equivalent=False
+
+Validation Set Error Examples:
+  Error 1:
+    ID: ETR/2004/page_213.pdf-2
+    Question: what are the deferred fuel cost revisions as a percentage of the increase in fuel cost recovery reve...
+    Ground Truth: 60.3%
+    Predicted: 15.2%
+    Explanation: Numerical comparison: 0.603 vs 0.152, equivalent=False
+
+  Error 2:
+    ID: C/2017/page_328.pdf-1
+    Question: what was the percentage cumulative total return for the five year period ended 31-dec-2017 of citi c...
+    Ground Truth: 93.5%
+    Predicted: 193.5%
+    Explanation: Numerical comparison: 0.935 vs 1.935, equivalent=False
+
+  Error 3:
+    ID: V/2008/page_17.pdf-1
+    Question: what is the average payment volume per transaction for american express?...
+    Ground Truth: 127.40
+    Predicted: $127.4 billion
+    Explanation: Numerical comparison: 127.4 vs 127400000000.0, equivalent=False
+
+  Error 4:
+    ID: ETR/2011/page_341.pdf-3
+    Question: in 2010 what was the net change in net revenue in millions...
+    Ground Truth: 18.6
+    Predicted: $18.6 million
+    Explanation: Numerical comparison: 18.6 vs 18600000.0, equivalent=False
+
+  Error 5:
+    ID: PM/2017/page_38.pdf-1
+    Question: what was the change in millions of operating income from 2016 to 2017?...
+    Ground Truth: 688
+    Predicted: $492 million
+    Explanation: Numerical comparison: 688.0 vs 492000000.0, equivalent=False
+

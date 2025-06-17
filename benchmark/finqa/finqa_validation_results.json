@@ -1,0 +1,202 @@
+[
+  {
+    "id": "ETR/2004/page_213.pdf-2",
+    "question": "what are the deferred fuel cost revisions as a percentage of the increase in fuel cost recovery revenues?",
+    "ground_truth": "60.3%",
+    "predicted_answer": "15.2%",
+    "reasoning": "The deferred fuel cost revisions as a percentage of the increase in fuel cost recovery revenues can be calculated as follows:",
+    "gold_inds": [],
+    "program_re": "divide(59.1, 98.0)",
+    "success": true
+  },
+  {
+    "id": "C/2017/page_328.pdf-1",
+    "question": "what was the percentage cumulative total return for the five year period ended 31-dec-2017 of citi common stock?",
+    "ground_truth": "93.5%",
+    "predicted_answer": "193.5%",
+    "reasoning": "To calculate the percentage cumulative total return for the five year period ended December 31, 2017 of Citi common stock, we need to find the difference between the final value and the initial value, divide by the initial value, and multiply by 100.",
+    "gold_inds": [],
+    "program_re": "subtract(193.5, const_100), divide(#0, const_100)",
+    "success": true
+  },
+  {
+    "id": "V/2008/page_17.pdf-1",
+    "question": "what is the average payment volume per transaction for american express?",
+    "ground_truth": "127.40",
+    "predicted_answer": "$127.4 billion",
+    "reasoning": "To find the average payment volume per transaction for American Express, we need to divide the total payment volume by the number of transactions. According to the provided financial data, the total payment volume for American Express is $637 billion, and the number of transactions is 5.0 billion. Therefore, the average payment volume per transaction for American Express is:",
+    "gold_inds": [],
+    "program_re": "divide(637, const_5)",
+    "success": true
+  },
+  {
+    "id": "ETR/2011/page_341.pdf-3",
+    "question": "in 2010 what was the net change in net revenue in millions",
+    "ground_truth": "18.6",
+    "predicted_answer": "$18.6 million",
+    "reasoning": "To calculate the net change in net revenue in millions for entergy mississippi, inc. in 2010, we need to subtract the 2009 net revenue from the 2010 net revenue. The 2009 net revenue is $536.7 million, and the 2010 net revenue is $555.3 million. Therefore, the net change in net revenue in millions is:",
+    "gold_inds": [],
+    "program_re": "add(18.9, 0.3)",
+    "success": true
+  },
+  {
+    "id": "PM/2017/page_38.pdf-1",
+    "question": "what was the change in millions of operating income from 2016 to 2017?",
+    "ground_truth": "688",
+    "predicted_answer": "$492 million",
+    "reasoning": "To find the change in operating income from 2016 to 2017, we need to subtract the operating income in 2016 from the operating income in 2017. According to the financial data provided, the operating income in 2016 was $10,815 million, and the operating income in 2017 was $11,503 million. Therefore, the change in operating income from 2016 to 2017 is:",
+    "gold_inds": [],
+    "program_re": "subtract(11503, 10815)",
+    "success": true
+  },
+  {
+    "id": "JPM/2008/page_85.pdf-3",
+    "question": "what was jpmorgan chase & co's common equity tier 1 ( cet1 ) ratio in 2008?",
+    "ground_truth": "10.94%",
+    "predicted_answer": "10.7%",
+    "reasoning": "To calculate JPMorgan Chase & Co's common equity tier 1 (CET1) ratio in 2008, we need to find the value of CET1 capital and risk-weighted assets (RWAs) from the provided data. According to the table, the firm had total tier 1 capital of $136,104 million and total risk-weighted assets of $124,465 million in 2008. Therefore, the CET1 ratio can be calculated as follows:",
+    "gold_inds": [],
+    "program_re": "divide(136104, 1244659)",
+    "success": true
+  },
+  {
+    "id": "PNC/2013/page_207.pdf-1",
+    "question": "at the end of 2014 , the notional value of derivatives designated as hedging instruments under gaap was what percent of the fair value?",
+    "ground_truth": "3044%",
+    "predicted_answer": "36197 / 1189 = 30.8%",
+    "reasoning": "To calculate the percentage of notional value to fair value at the end of 2014, we need to find the notional value and fair value of derivatives designated as hedging instruments under GAAP. According to the provided data, the notional value was $36197 and the gross fair value was $1189. Therefore, the percentage of notional value to fair value is:",
+    "gold_inds": [],
+    "program_re": "divide(36197, 1189)",
+    "success": true
+  },
+  {
+    "id": "DVN/2007/page_58.pdf-2",
+    "question": "what percentage of the total oil and gas mmboe comes from canada?",
+    "ground_truth": "24.69",
+    "predicted_answer": "23%",
+    "reasoning": "To find the percentage of total oil and gas mmboe that comes from Canada, we need to identify the specific numbers mentioned in the question and find them in the provided data. The question asks for the percentage of total oil and gas mmboe that comes from Canada. The provided data gives us the following information: Canadian operations have been converted to US dollars using a projected average 2008 exchange rate of $0.98 US dollar to $1.00 Canadian dollar. The total oil, gas, and NGL production for 2008 is estimated to be approximately 240 to 247 mmboe, with 92% of that total being produced from reserves classified as proved at December 31, 2007. Of this total, approximately 23% is estimated to come from Canada. Therefore, the percentage of total oil and gas mmboe that comes from Canada is:",
+    "gold_inds": [],
+    "program_re": "divide(60, 243), multiply(#0, const_100)",
+    "success": true
+  },
+  {
+    "id": "CME/2017/page_97.pdf-5",
+    "question": "what was the increase in class a common stock issued and outstanding between years , in thousands?",
+    "ground_truth": "995",
+    "predicted_answer": "37091",
+    "reasoning": "To find the increase in class a common stock issued and outstanding between years, we need to subtract the issued and outstanding shares at the end of the previous year from the issued and outstanding shares at the end of the current year. Based on the provided financial data, the issued and outstanding shares of class a common stock at the end of 2017 were 339235, and at the end of 2016 were 338240. Therefore, the increase in class a common stock issued and outstanding between years is:",
+    "gold_inds": [],
+    "program_re": "subtract(339235, 338240)",
+    "success": true
+  },
+  {
+    "id": "AAPL/2004/page_36.pdf-2",
+    "question": "what was the gross margin decline in fiscal 2004 from 2003?",
+    "ground_truth": ".2",
+    "predicted_answer": "$551 million",
+    "reasoning": "To find the gross margin decline in fiscal 2004 from 2003, we need to compare the gross margins of both years. According to the financial data provided, the gross margin for fiscal 2004 was $2259 million, while the gross margin for fiscal 2003 was $1708 million. Therefore, the gross margin decline in fiscal 2004 from 2003 is:",
+    "gold_inds": [],
+    "program_re": "subtract(27.5, 27.3)",
+    "success": true
+  },
+  {
+    "id": "PNC/2013/page_62.pdf-2",
+    "question": "in millions what was total residential mortgages balance for 2013 and 2012?",
+    "ground_truth": "3576",
+    "predicted_answer": "$1356 million",
+    "reasoning": "To find the total residential mortgages balance for 2013 and 2012, we need to extract the relevant information from the provided financial data. The information we need is the residential mortgages balance at December 31, 2013 and December 31, 2012. According to the data, the total residential mortgages balance at December 31, 2013 was $1356 million, and at December 31, 2012, it was $2220 million. Therefore, the total residential mortgages balance for 2013 was $1356 million, and for 2012, it was $2220 million.",
+    "gold_inds": [],
+    "program_re": "add(1356, 2220)",
+    "success": true
+  },
+  {
+    "id": "LMT/2013/page_74.pdf-4",
+    "question": "what was the change in the weighted average common shares outstanding for diluted computations from 2012 to 2013 , in millions?",
+    "ground_truth": "-1.9",
+    "predicted_answer": "326.5 - 328.4 = -1.9",
+    "reasoning": "To find the change in the weighted average common shares outstanding for diluted computations from 2012 to 2013, we need to subtract the weighted average common shares outstanding for diluted computations in 2012 from the weighted average common shares outstanding for diluted computations in 2013. This gives us:",
+    "gold_inds": [],
+    "program_re": "subtract(326.5, 328.4)",
+    "success": true
+  },
+  {
+    "id": "PKG/2009/page_65.pdf-4",
+    "question": "what percentage of total purchase commitments are due after 2014?",
+    "ground_truth": "56%",
+    "predicted_answer": "29.5%",
+    "reasoning": "To find the percentage of total purchase commitments due after 2014, we need to identify the specific numbers mentioned in the question and find them in the provided data. The question asks for the percentage of total purchase commitments due after 2014. The provided data shows that the total purchase commitments are $44,572,000, and the portion of these commitments due after 2014 is given as 'thereafter' which is $25,048,000. To calculate the percentage, we can use the following steps:",
+    "gold_inds": [],
+    "program_re": "divide(25048, 44572)",
+    "success": true
+  },
+  {
+    "id": "STT/2011/page_83.pdf-1",
+    "question": "in 2011 what was the amount of tax related to the unrealized losses reclassifications totaled $ 303 million , or $ 189 million after-tax,",
+    "ground_truth": "114",
+    "predicted_answer": "$189 million",
+    "reasoning": "To calculate the amount of tax related to the unrealized losses reclassifications totaled $ 303 million , or $ 189 million after-tax, in 2011, we need to look at the financial data provided. The net unrealized loss pre-tax is -$181 million, and the net unrealized loss after-tax is -$113 million. Therefore, the amount of tax related to the unrealized losses reclassifications totaled $189 million, or $189 million after-tax.",
+    "gold_inds": [],
+    "program_re": "subtract(303, 189)",
+    "success": true
+  },
+  {
+    "id": "MRO/2007/page_149.pdf-2",
+    "question": "if current development costs increased in 2008 as much as in 2007 , what would the 2008 total be , in millions?",
+    "ground_truth": "2057",
+    "predicted_answer": "$1705 million",
+    "reasoning": "To calculate the total for 2008, we need to add the development costs incurred during the period and the changes in estimated future development costs. The development costs incurred during the period are $1654 million + $1251 million = $2905 million. The changes in estimated future development costs are -$1727 million + $527 million = -$1200 million. Therefore, the total for 2008 would be $2905 million - $1200 million = $1705 million.",
+    "gold_inds": [],
+    "program_re": "subtract(1654, 1251), add(#0, 1654)",
+    "success": true
+  },
+  {
+    "id": "C/2010/page_223.pdf-3",
+    "question": "in 2010 what was the percentage change of the carrying amount of loan receivable net of the allowance",
+    "ground_truth": "-52.5%",
+    "predicted_answer": "$116/($920 - $77) * 100 = 13.5%",
+    "reasoning": "To calculate the percentage change of the carrying amount of loan receivable net of the allowance in 2010, we need to find the difference between the carrying amount at the end of 2010 and the beginning balance in 2010, and then divide that difference by the beginning balance in 2010. Here's the calculation step by step:",
+    "gold_inds": [],
+    "program_re": "subtract(920, 95), subtract(469, 77), subtract(#1, #0), divide(#2, #0)",
+    "success": true
+  },
+  {
+    "id": "AOS/2004/page_11.pdf-2",
+    "question": "what percentage of total aggregate contractual obligations is due to purchase obligationst?",
+    "ground_truth": "34%",
+    "predicted_answer": "34.2%",
+    "reasoning": "To find the percentage of total aggregate contractual obligations due to purchase obligations, we need to identify the specific numbers mentioned in the question and find them in the provided data. The question asks for the percentage of total aggregate contractual obligations due to purchase obligations. Let's read the financial data carefully and perform the calculation step by step. The total aggregate contractual obligations are $521.3 million, and the purchase obligations are $177.3 million. To find the percentage, we can divide the purchase obligations by the total aggregate contractual obligations and multiply by 100 for a percentage. So, the percentage of total aggregate contractual obligations due to purchase obligations is (177.3/521.3)*100 = 34.2%",
+    "gold_inds": [],
+    "program_re": "divide(177.3, 521.3)",
+    "success": true
+  },
+  {
+    "id": "AMAT/2013/page_18.pdf-2",
+    "question": "what is the applied 2019s net sales in 2018 , ( in billions ) ?",
+    "ground_truth": "7.22",
+    "predicted_answer": "4573 million",
+    "reasoning": "To find Applied Materials' net sales in 2018, we need to look at the financial data provided. The data shows that the company had net sales of $2372 million in 2013, and $1606 million in 2012. To find the net sales in 2018, we can use the average growth rate of 14% over the last five years. Therefore, we can calculate the net sales in 2018 as follows:",
+    "gold_inds": [],
+    "program_re": "divide(18, const_100), divide(1.3, #0)",
+    "success": true
+  },
+  {
+    "id": "MSI/2006/page_61.pdf-3",
+    "question": "what was the percent of the total long-term debt obligations that was due after 2011",
+    "ground_truth": "35.1%",
+    "predicted_answer": "17.5%",
+    "reasoning": "To find the percentage of total long-term debt obligations that was due after 2011, we need to calculate the amount of debt obligations due after 2011 and then divide it by the total long-term debt obligations. According to the provided financial data, the total long-term debt obligations at December 31, 2006, were $4,134 million. The amount of debt obligations due after 2011 is $724 million (long-term debt obligations of $4,134 million less the portion due in 2011 and before, which is $3,410 million). Therefore, the percentage of total long-term debt obligations that was due after 2011 is: ($724 million / $4,134 million) x 100% = 17.5%",
+    "gold_inds": [],
+    "program_re": "divide(1451, 4134)",
+    "success": true
+  },
+  {
+    "id": "ABMD/2006/page_75.pdf-1",
+    "question": "what is the decline from current future minimum lease payments and the following years expected obligation?\\\\n",
+    "ground_truth": "25%",
+    "predicted_answer": "$4,819,000 - ($1,703,000 + $1,371,000 + $1,035,000 + $710,000) = $2,885,000",
+    "reasoning": "To calculate the decline from current future minimum lease payments and the following years expected obligation, we need to find the specific numbers mentioned in the question in the provided financial data. The question asks for the decline from current future minimum lease payments and the following years expected obligation. Based on the data, we can see that the total future minimum lease payments as of March 31, 2006, are approximately $4,819,000. The question also asks for the decline from current future minimum lease payments and the following years expected obligation. To calculate this, we need to find the specific numbers mentioned in the question in the provided financial data. Based on the data, we can see that the future minimum lease payments for the fiscal year ending March 31, 2007, are approximately $1,703,000. The future minimum lease payments for the fiscal year ending March 31, 2008, are approximately $1,371,000. The future minimum lease payments for the fiscal year ending March 31, 2009, are approximately $1,035,000. The future minimum lease payments for the fiscal year ending March 31, 2010, are approximately $710,000. To calculate the decline from current future minimum lease payments and the following years expected obligation, we can subtract the total future minimum lease payments as of March 31, 2006 ($4,819,000) from the sum of the future minimum lease payments for each year ending March 31, 2007 through 2010:",
+    "gold_inds": [],
+    "program_re": "subtract(1703, 1371), divide(#0, 1703)",
+    "success": true
+  }
+]
