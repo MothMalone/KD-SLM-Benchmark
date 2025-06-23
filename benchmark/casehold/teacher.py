@@ -127,7 +127,7 @@ for i, case_data in enumerate(data):
         }])
         metrics_df = pd.concat([metrics_df, metrics_row], ignore_index=True)
 
-        metrics_df.to_csv("metrics_log.csv", index=False, mode='w')
+        metrics_df.to_csv("metrics_log_teacher.csv", index=False, mode='w')
         print(f"Logged metrics after {i + 1} cases.")
 
 y_true_array = np.array(y_true, dtype=float)
