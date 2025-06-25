@@ -145,7 +145,7 @@ def preprocess_casehold(tokenizer, max_length=2048):
                   f"0: {example['holding_0']}\n1: {example['holding_1']}\n"
                   f"2: {example['holding_2']}\n3: {example['holding_3']}\n"
                   f"4: {example['holding_4']}\n\nCorrect Answer Index: {example['label']}")
-        return {"text": prompt}
+        return {"textexample": prompt}
 
     data = data.map(format_example)
     
