@@ -1,3 +1,4 @@
+# --- FINAL FAST SCRIPT ---
 import torch
 import torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
@@ -6,10 +7,11 @@ import os
 import json
 
 def jensen_shannon_divergence(p_logits, q_logits):
+    """Computes Jensen-Shannon divergence between two logit distributions."""
     p = F.softmax(p_logits, dim=-1)
     q = F.softmax(q_logits, dim=-1)
     m = 0.5 * (p + q)
-    # Use log_target=True for KLDivLoss when the target is in log space
+    # Use log_target=False as target 'm' is a probability distribution
     kl_pm = F.kl_div(F.log_softmax(p_logits, dim=-1), m, reduction='batchmean', log_target=False)
     kl_qm = F.kl_div(F.log_softmax(q_logits, dim=-1), m, reduction='batchmean', log_target=False)
     return 0.5 * (kl_pm + kl_qm)
@@ -44,14 +46,22 @@ class LocalDistillTrainer(Trainer):
         return student_logits, teacher_logits
 
     def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
+        # The Trainer class automatically handles labels. We pop them here to prevent
+        # the model from calculating loss automatically, so we can do it manually.
+        labels = inputs.pop("labels", None)
+        
         # Student forward pass
         student_outputs = model(**inputs)
         student_logits = student_outputs.logits
 
         # Teacher forward pass (no gradients needed)
         with torch.no_grad():
+            if labels is not None:
+                inputs["labels"] = labels
             teacher_outputs = self.teacher_model(**inputs)
             teacher_logits = teacher_outputs.logits
+            if "labels" in inputs:
+                inputs.pop("labels")
 
         student_logits, teacher_logits = self.pad_logits(student_logits, teacher_logits)
 
@@ -66,79 +76,31 @@ class LocalDistillTrainer(Trainer):
         # JS Divergence loss for regularization
         js_loss = jensen_shannon_divergence(student_logits, teacher_logits)
 
-        # Original cross-entropy loss from the student
-        original_loss = student_outputs.loss
-
-        # Combined loss
-        custom_loss = self.alpha * kl_loss + (1 - self.alpha) * original_loss + 0.1 * js_loss
-
-        return (custom_loss, student_outputs) if return_outputs else custom_loss
-class LocalDistillTrainer(Trainer):
-    def __init__(self, teacher_model, temperature=2.0, alpha=0.5, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.teacher_model = teacher_model
-        self.temperature = temperature
-        self.alpha = alpha
-        self.teacher_model.to(self.model.device)
-        self.teacher_model.eval()
-
-    def pad_logits(self, student_logits, teacher_logits):
-        s_vocab_size = student_logits.size(-1)
-        t_vocab_size = teacher_logits.size(-1)
-        if s_vocab_size == t_vocab_size:
-            return student_logits, teacher_logits
-        if s_vocab_size < t_vocab_size:
-            pad_size = t_vocab_size - s_vocab_size
-            padding = torch.zeros(*student_logits.shape[:-1], pad_size, device=student_logits.device)
-            student_logits = torch.cat([student_logits, padding], dim=-1)
-        else:
-            pad_size = s_vocab_size - t_vocab_size
-            padding = torch.zeros(*teacher_logits.shape[:-1], pad_size, device=teacher_logits.device)
-            teacher_logits = torch.cat([teacher_logits, padding], dim=-1)
-        return student_logits, teacher_logits
-
-    def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
-        # Manually calculate the student's original loss.
-        labels = inputs.pop("labels", None) 
-        
-        student_outputs = model(**inputs)
-        student_logits = student_outputs.logits
-
-        with torch.no_grad():
-            teacher_outputs = self.teacher_model(**inputs)
-            teacher_logits = teacher_outputs.logits
-
-        student_logits, teacher_logits = self.pad_logits(student_logits, teacher_logits)
-
-        kl_loss = F.kl_div(
-            F.log_softmax(student_logits / self.temperature, dim=-1),
-            F.softmax(teacher_logits / self.temperature, dim=-1),
-            reduction='batchmean',
-            log_target=False 
-        ) * (self.temperature ** 2)
-
-        js_loss = jensen_shannon_divergence(student_logits, teacher_logits)
-
-
         # Manually calculate the student's original cross-entropy loss
         original_loss = 0.0
         if labels is not None:
-            # Standard language modeling loss calculation
             shift_logits = student_logits[..., :-1, :].contiguous()
             shift_labels = labels[..., 1:].contiguous()
             loss_fct = torch.nn.CrossEntropyLoss()
             original_loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
 
-
+        # Combined loss
         custom_loss = self.alpha * kl_loss + (1 - self.alpha) * original_loss + 0.1 * js_loss
         
         if return_outputs:
-            return {"loss": custom_loss, "logits": student_outputs.logits, "hidden_states": student_outputs.hidden_states}
+            return {"loss": custom_loss, "logits": student_logits}
         
         return custom_loss
-def preprocess_casehold(tokenizer, max_length=2048):
+
+def preprocess_casehold(tokenizer, max_length=1024): # <-- SPEEDUP: Reduced sequence length
     ds = load_dataset("MothMalone/SLMS-KD-Benchmarks", "casehold")
     data = ds['train']
+    
+    # --- SPEEDUP: Shuffle and select a smaller subset ---
+    print(f"Original dataset size: {len(data)}")
+    data = data.shuffle(seed=42).select(range(10000))
+    print(f"Using a smaller subset of {len(data)} samples for faster training.")
+    # ----------------------------------------------------
     
     def format_example(example):
         prompt = (f"Citing Prompt: {example['citing_prompt']}\n\nChoices:\n"
@@ -147,18 +109,19 @@ def preprocess_casehold(tokenizer, max_length=2048):
                   f"4: {example['holding_4']}\n\nCorrect Answer Index: {example['label']}")
         return {"textexample": prompt}
 
-    data = data.map(format_example)
+    data = data.map(format_example, load_from_cache_file=False)
     
     def tokenize_fn(examples):
         return tokenizer(examples["text"], truncation=True, max_length=max_length, padding="max_length")
 
-    tokenized = data.map(tokenize_fn, batched=True, num_proc=4, remove_columns=data.column_names)
+    tokenized = data.map(tokenize_fn, batched=True, num_proc=4, remove_columns=data.column_names, load_from_cache_file=False)
     return tokenized.train_test_split(test_size=0.1, seed=42)
 
 def main():
     TEACHER_MODEL_ID = "meta-llama/Llama-2-13b-hf"
     STUDENT_MODEL_ID = "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T"
-    OUTPUT_DIR = "student_model_casehold"
+    # SPEEDUP: Changed output directory to not overwrite the full run
+    OUTPUT_DIR = "student_model_casehold_fast"
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     print("Loading teacher model (Llama-2-13B) in 4-bit precision...")
@@ -178,20 +141,23 @@ def main():
     print("Student model loaded.")
     
     tokenizer = AutoTokenizer.from_pretrained(STUDENT_MODEL_ID)
+    
     if tokenizer.pad_token is None:
+        print("Adding padding token and resizing embeddings...")
         tokenizer.add_special_tokens({'pad_token': '[PAD]'})
         student_model.resize_token_embeddings(len(tokenizer))
         teacher_model.resize_token_embeddings(len(tokenizer))
 
     print("Preprocessing dataset...")
-    tokenized_dataset = preprocess_casehold(tokenizer)
+    tokenized_dataset = preprocess_casehold(tokenizer, max_length=1024)
     
     training_args = TrainingArguments(
         output_dir=OUTPUT_DIR,
         optim="adamw_8bit",
-        num_train_epochs=3,
+        num_train_epochs=1, # Kept at 1 for speed
         per_device_train_batch_size=1,
         gradient_accumulation_steps=8,
+        gradient_checkpointing=True,
         save_steps=500,
         logging_steps=10,
         learning_rate=2e-5,
@@ -213,7 +179,7 @@ def main():
         args=training_args,
     )
 
-    print("Starting distillation training on RTX 3090...")
+    print("Starting distillation training on RTX 3090 (Fast Mode)...")
     trainer.train()
     print("Training complete.")
 
