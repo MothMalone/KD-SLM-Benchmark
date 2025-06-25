@@ -30,7 +30,7 @@ PubMedQA is a dataset and a task that involves Question Answering (QA) using sci
 """
 
 # Define the model ID
-TEACHER_MODEL_ID = "llama3.2:1b"
+TEACHER_MODEL_ID = "llama2:13b"
 
 # Initialize OpenAI instructor client
 client = instructor.from_openai(
