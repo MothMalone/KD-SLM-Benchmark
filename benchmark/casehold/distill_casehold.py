@@ -1,196 +1,237 @@
-# --- FINAL FAST SCRIPT ---
+import os
+import wandb
+import transformers
 import torch
 import torch.nn.functional as F
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
 from datasets import load_dataset
-import os
-import json
+from trl import SFTTrainer
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, BitsAndBytesConfig
+from peft import LoraConfig, get_peft_model
+from transformers import AutoModelForCausalLM
+from peft import prepare_model_for_kbit_training
+import torch
+import transformers
+torch.cuda.empty_cache()
+transformers.logging.set_verbosity_info()
 
-def jensen_shannon_divergence(p_logits, q_logits):
-    """Computes Jensen-Shannon divergence between two logit distributions."""
-    p = F.softmax(p_logits, dim=-1)
-    q = F.softmax(q_logits, dim=-1)
-    m = 0.5 * (p + q)
-    # Use log_target=False as target 'm' is a probability distribution
-    kl_pm = F.kl_div(F.log_softmax(p_logits, dim=-1), m, reduction='batchmean', log_target=False)
-    kl_qm = F.kl_div(F.log_softmax(q_logits, dim=-1), m, reduction='batchmean', log_target=False)
-    return 0.5 * (kl_pm + kl_qm)
+# Set WANDB API key
+os.environ["WANDB_API_KEY"] = "1494f76f0db1fdaee413a37d8943d3d1595ebf50"
+# NOTE: https://docs.wandb.ai/guides/track/#how-it-works
+wandb.login()
+wandb.init(
+    project="KD-SLM",
+    id="casehold-distill-run01",     
+    name="Llama3.2-1B-Casehold-Distill", 
+    resume="allow"                   
+)
 
-class LocalDistillTrainer(Trainer):
-    def __init__(self, teacher_model, temperature=2.0, alpha=0.5, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.teacher_model = teacher_model
-        self.temperature = temperature
-        self.alpha = alpha
-        # Ensure teacher is on the correct device and in eval mode
-        self.teacher_model.to(self.model.device)
-        self.teacher_model.eval()
+DATASET_CONTEXT = """
+CaseHOLD is a dataset for legal reasoning that involves multiple-choice questions based on legal cases. The task is to identify the correct legal holding (the key legal principle or rule) from a set of candidate holdings, given a citing prompt that describes a legal scenario or case context.
+"""
 
-    def pad_logits(self, student_logits, teacher_logits):
-        """Pads the smaller logit tensor to match the larger one's vocab size."""
-        s_vocab_size = student_logits.size(-1)
-        t_vocab_size = teacher_logits.size(-1)
+config = {
+    "dataset" : {
+        "name": "MothMalone/SLMS-KD-Benchmarks"
+    }, 
+    "models": {
+        "teacher": "meta-llama/Llama-2-13b-hf",
+        "student": "meta-llama/Llama-3.2-1B"
+    },
+    "tokenizer": {
+        "max_length": 4096,
+        "chat_template" : """
+            {% for message in messages %}
+            {% if loop.first and messages[0]['role'] != 'system' %}
+                {{ '<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n' }}
+            {% endif %}
+            {{ '<|im_start|>' + message['role'] + '\n' + message['content'] + '<|im_end|>' + '\n' }}
+            {% endfor %}
+            {% if add_generation_prompt %}
+            {{ '<|im_start|>assistant\n' }}
+            {% endif %}
+        """,
+    },
+    "distillation": {
+        "temperature": 2.0,
+        "alpha": 0.5
+    },
+    "training": {
+        "report_to": "wandb",
+        "output_dir": "./results-casehold-distill",
+        "hub_model_id": "MothMalone/Llama3.2-1B-Casehold-Distilled",  
+        "push_to_hub": True,
+        "hub_strategy": "checkpoint",
+        "num_train_epochs": 10,
+        "per_device_train_batch_size": 10,
+        "gradient_accumulation_steps": 8,
+        "save_steps": 1000,
+        "logging_steps": 1,
+        "learning_rate": 2e-5,
+        "weight_decay": 0.05,
+        "warmup_ratio": 0.1,
+        "lr_scheduler_type": "cosine",
+        "resume_from_checkpoint": None,
+        "fp16": False,
+        "bf16": True
+    },
+    "model_config": {
+        "use_flash_attention": False
+    }
+}
 
-        if s_vocab_size == t_vocab_size:
-            return student_logits, teacher_logits
+bits_and_bytes_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_use_double_quant=True,
+    bnb_4bit_compute_dtype=torch.bfloat16,
+)
 
-        if s_vocab_size < t_vocab_size:
-            pad_size = t_vocab_size - s_vocab_size
-            padding = torch.zeros(*student_logits.shape[:-1], pad_size, device=student_logits.device)
-            student_logits = torch.cat([student_logits, padding], dim=-1)
-        else: # t_vocab_size < s_vocab_size
-            pad_size = s_vocab_size - t_vocab_size
-            padding = torch.zeros(*teacher_logits.shape[:-1], pad_size, device=teacher_logits.device)
-            teacher_logits = torch.cat([teacher_logits, padding], dim=-1)
-            
-        return student_logits, teacher_logits
+# Load dataset and check sample sizes
+dataset = load_dataset(config['dataset']['name'], 'casehold')
+dataset = dataset['train']
+print(f"Total dataset size: {len(dataset)}")
+print(f"Using full dataset for training")
+# NOTE: If you want to limit sample size for testing, uncomment below:
+dataset = dataset.select(range(1000))  # Use only first 10k samples
+print(f"Limited dataset size: {len(dataset)}")
+tokenizer = AutoTokenizer.from_pretrained(config["models"]["teacher"])
+tokenizer.pad_token = tokenizer.eos_token
+tokenizer.pad_token_id = tokenizer.eos_token_id
 
-    def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
-        # The Trainer class automatically handles labels. We pop them here to prevent
-        # the model from calculating loss automatically, so we can do it manually.
-        labels = inputs.pop("labels", None)
+def sharegpt_format(row):
+    question = f"""
+    {DATASET_CONTEXT}
+    Given the following legal case scenario from the CaseHOLD dataset:
+    citing_prompt: {row['citing_prompt']},
+    with these holding options:
+    0: {row['holding_0']}
+    1: {row['holding_1']}
+    2: {row['holding_2']}
+    3: {row['holding_3']}
+    4: {row['holding_4']}
+    Please provide the final decision based on the legal scenario and determine which holding is correct. 
+    The answer should be the index number (0, 1, 2, 3, or 4) of the correct holding.
+    """
+    return {
+        'question': question
+    }
+
+# Preprocess data at this
+dataset = dataset.map(sharegpt_format)
+dataset = dataset.remove_columns(['citing_prompt', 'holding_0', 'holding_1', 'holding_2', 'holding_3', 'holding_4', 'label'])
+
+
+
+def tokenize_function(batch):
+    enc = tokenizer(batch["question"],
+                    truncation=True,
+                    padding="max_length",
+                    max_length=config["tokenizer"]["max_length"])
+    enc["labels"] = enc["input_ids"].copy()
+    return enc
+tokenized_dataset = dataset.map(tokenize_function, batched=True, remove_columns=["question"])
+
+
+train_test_split = tokenized_dataset.train_test_split(test_size=0.1, seed=42)
+tokenized_dataset = train_test_split
+
+model_kwargs = {"torch_dtype": torch.bfloat16}
+if config["model_config"]["use_flash_attention"]:
+    model_kwargs["attn_implementation"] = "flash_attention_2"
+    
+def pad_logits(student_logits, teacher_logits):
+    student_size, teacher_size = student_logits.size(-1), teacher_logits.size(-1)
+    if student_size != teacher_size:
+        pad_size = abs(student_size - teacher_size)
+        pad_tensor = torch.zeros((*teacher_logits.shape[:-1], pad_size), dtype=teacher_logits.dtype, device=teacher_logits.device)
+        return (torch.cat([student_logits, pad_tensor], dim=-1), teacher_logits) if student_size < teacher_size else (student_logits, torch.cat([teacher_logits, pad_tensor], dim=-1))
+    return student_logits, teacher_logits
+
+# NOTE: Remove quantization_config if you have enough GPU RAM (>40GB) for better performance
+student_model = AutoModelForCausalLM.from_pretrained(config["models"]["student"], 
+                                            # quantization_config = bits_and_bytes_config, 
+                                            device_map = "auto")
+
+teacher_model = AutoModelForCausalLM.from_pretrained(config["models"]["teacher"], 
+                                            # quantization_config = bits_and_bytes_config,  
+                                            device_map = "auto")
+student_model.resize_token_embeddings(len(tokenizer))
+teacher_model.resize_token_embeddings(len(tokenizer))
+
+
+
+assert student_model.config.vocab_size == len(tokenizer)
+assert tokenizer.pad_token_id < student_model.config.vocab_size
+
+assert teacher_model.config.vocab_size == len(tokenizer)
+assert tokenizer.pad_token_id < teacher_model.config.vocab_size
+
+class LogitsTrainer(SFTTrainer):
+    def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
+        device = next(model.parameters()).device
+        inputs = {k: v.to(device) if hasattr(v, 'to') else v for k, v in inputs.items()}
+        self.teacher_model = self.teacher_model.to(device)
         
-        # Student forward pass
-        student_outputs = model(**inputs)
-        student_logits = student_outputs.logits
+        student_model = model.module if hasattr(model, 'module') else model
+        teacher_model = self.teacher_model.module if hasattr(self.teacher_model, 'module') else self.teacher_model
 
-        # Teacher forward pass (no gradients needed)
+        student_outputs = student_model(**inputs)
         with torch.no_grad():
-            if labels is not None:
-                inputs["labels"] = labels
-            teacher_outputs = self.teacher_model(**inputs)
-            teacher_logits = teacher_outputs.logits
-            if "labels" in inputs:
-                inputs.pop("labels")
+            teacher_outputs = teacher_model(**inputs)
 
-        student_logits, teacher_logits = self.pad_logits(student_logits, teacher_logits)
+        custom_loss = self.distillation_loss(model, student_outputs.logits, teacher_outputs.logits, inputs, student_outputs.loss)
+        return (custom_loss, student_outputs) if return_outputs else custom_loss
 
-        # KL Divergence distillation loss
-        kl_loss = F.kl_div(
-            F.log_softmax(student_logits / self.temperature, dim=-1),
-            F.softmax(teacher_logits / self.temperature, dim=-1),
-            reduction='batchmean',
-            log_target=False 
-        ) * (self.temperature ** 2)
-
-        # JS Divergence loss for regularization
-        js_loss = jensen_shannon_divergence(student_logits, teacher_logits)
-
-        # Manually calculate the student's original cross-entropy loss
-        original_loss = 0.0
-        if labels is not None:
-            shift_logits = student_logits[..., :-1, :].contiguous()
-            shift_labels = labels[..., 1:].contiguous()
-            loss_fct = torch.nn.CrossEntropyLoss()
-            original_loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
-
-        # Combined loss
-        custom_loss = self.alpha * kl_loss + (1 - self.alpha) * original_loss + 0.1 * js_loss
+    def distillation_loss(self, model, student_logits, teacher_logits, inputs, original_loss):
+        device = next(model.parameters()).device
+        student_logits, teacher_logits = pad_logits(student_logits.to(device), teacher_logits.to(device))
         
-        if return_outputs:
-            return {"loss": custom_loss, "logits": student_logits}
-        
-        return custom_loss
+        student_logits_scaled = student_logits / config["distillation"]["temperature"]
+        teacher_logits_scaled = teacher_logits / config["distillation"]["temperature"]
 
-def preprocess_casehold(tokenizer, max_length=1024): # <-- SPEEDUP: Reduced sequence length
-    ds = load_dataset("MothMalone/SLMS-KD-Benchmarks", "casehold")
-    data = ds['train']
-    
-    # --- SPEEDUP: Shuffle and select a smaller subset ---
-    print(f"Original dataset size: {len(data)}")
-    data = data.shuffle(seed=42).select(range(10000))
-    print(f"Using a smaller subset of {len(data)} samples for faster training.")
-    # ----------------------------------------------------
-    
-    def format_example(example):
-        prompt = (f"Citing Prompt: {example['citing_prompt']}\n\nChoices:\n"
-                  f"0: {example['holding_0']}\n1: {example['holding_1']}\n"
-                  f"2: {example['holding_2']}\n3: {example['holding_3']}\n"
-                  f"4: {example['holding_4']}\n\nCorrect Answer Index: {example['label']}")
-        return {"textexample": prompt}
+        loss_kd = F.kl_div(
+            F.log_softmax(student_logits_scaled, dim=-1),
+            F.softmax(teacher_logits_scaled, dim=-1),
+            reduction='batchmean'
+        ) * (config["distillation"]["temperature"] ** 2) / config["tokenizer"]["max_length"]
 
-    data = data.map(format_example, load_from_cache_file=False)
-    
-    def tokenize_fn(examples):
-        return tokenizer(examples["text"], truncation=True, max_length=max_length, padding="max_length")
+        return config["distillation"]["alpha"] * loss_kd + (1 - config["distillation"]["alpha"]) * original_loss
 
-    tokenized = data.map(tokenize_fn, batched=True, num_proc=4, remove_columns=data.column_names, load_from_cache_file=False)
-    return tokenized.train_test_split(test_size=0.1, seed=42)
+training_arguments = TrainingArguments(**config["training"])
 
-def main():
-    TEACHER_MODEL_ID = "meta-llama/Llama-2-13b-hf"
-    STUDENT_MODEL_ID = "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T"
-    # SPEEDUP: Changed output directory to not overwrite the full run
-    OUTPUT_DIR = "student_model_casehold_fast"
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    print("Loading teacher model (Llama-2-13B) in 4-bit precision...")
-    teacher_model = AutoModelForCausalLM.from_pretrained(
-        TEACHER_MODEL_ID,
-        load_in_4bit=True,
-        torch_dtype=torch.bfloat16,
-        device_map="auto",
-    )
-    print("Teacher model loaded.")
+# NOTE: Remove LoRA (this entire section) if you have enough GPU RAM (>40GB) for full fine-tuning
+# lora_config = LoraConfig(
+#     r=16,
+#     lora_alpha=8,
+#     target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+#     lora_dropout=0.05,
+#     bias="none",
+#     task_type="CAUSAL_LM"
+# )
 
-    print(f"Loading student model ({STUDENT_MODEL_ID})...")
-    student_model = AutoModelForCausalLM.from_pretrained(
-        STUDENT_MODEL_ID,
-        torch_dtype=torch.bfloat16,
-    )
-    print("Student model loaded.")
-    
-    tokenizer = AutoTokenizer.from_pretrained(STUDENT_MODEL_ID)
-    
-    if tokenizer.pad_token is None:
-        print("Adding padding token and resizing embeddings...")
-        tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-        student_model.resize_token_embeddings(len(tokenizer))
-        teacher_model.resize_token_embeddings(len(tokenizer))
+# Prepare model for quantized training and apply LoRA
+# NOTE: Skip these two lines if you removed quantization above
+# student_model = prepare_model_for_kbit_training(student_model)
+# student_model = get_peft_model(student_model, lora_config)
 
-    print("Preprocessing dataset...")
-    tokenized_dataset = preprocess_casehold(tokenizer, max_length=1024)
-    
-    training_args = TrainingArguments(
-        output_dir=OUTPUT_DIR,
-        optim="adamw_8bit",
-        num_train_epochs=1, # Kept at 1 for speed
-        per_device_train_batch_size=1,
-        gradient_accumulation_steps=8,
-        gradient_checkpointing=True,
-        save_steps=500,
-        logging_steps=10,
-        learning_rate=2e-5,
-        weight_decay=0.01,
-        warmup_ratio=0.1,
-        lr_scheduler_type="cosine",
-        bf16=True,
-        report_to="none",
-    )
+trainer = LogitsTrainer(
+    model=student_model,
+    train_dataset=tokenized_dataset["train"],
+    eval_dataset=tokenized_dataset["test"],
+    args=training_arguments,
+)
 
-    trainer = LocalDistillTrainer(
-        teacher_model=teacher_model,
-        temperature=2.0,
-        alpha=0.5,
-        model=student_model,
-        tokenizer=tokenizer,
-        train_dataset=tokenized_dataset["train"],
-        eval_dataset=tokenized_dataset["test"],
-        args=training_args,
-    )
+inputs = next(iter(trainer.get_train_dataloader()))
+max_id = inputs["input_ids"].max().item()
+vocab_size = student_model.config.vocab_size   # you should check BOTH student & teacher
+print(f"Max token ID in batch: {max_id}, vocab size: {vocab_size}")
+assert max_id < vocab_size, "Found out‐of‐range token ID!"
 
-    print("Starting distillation training on RTX 3090 (Fast Mode)...")
-    trainer.train()
-    print("Training complete.")
+trainer.teacher_model = teacher_model
+trainer.train(resume_from_checkpoint=config["training"]["resume_from_checkpoint"])
+trainer.save_model(config["training"]["output_dir"])
 
-    trainer.save_model(OUTPUT_DIR)
-    print(f"Student model saved to {OUTPUT_DIR}")
-
-    eval_metrics = trainer.evaluate()
-    eval_metrics_path = os.path.join(OUTPUT_DIR, "eval_metrics.json")
-    with open(eval_metrics_path, "w") as f:
-        json.dump(eval_metrics, f, indent=2)
-    print(f"Evaluation metrics saved to {eval_metrics_path}")
-
-if __name__ == "__main__":
-    main()
+# Push the final model to Hugging Face Hub
+print("Pushing model to Hugging Face Hub...")
+trainer.push_to_hub(commit_message="Knowledge distillation training completed")
