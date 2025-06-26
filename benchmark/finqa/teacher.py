@@ -13,6 +13,7 @@ import json
 import re
 from typing import List, Dict, Any, Union
 import random
+import csv
 
 warnings.filterwarnings("ignore")
 
@@ -108,7 +109,7 @@ def are_answers_equivalent(predicted, ground_truth, tolerance=0.01):
             return abs(pred_float) < tolerance
         else:
             return abs(pred_float - gt_float) / abs(gt_float) < tolerance
-            
+    
     except (ValueError, TypeError):
         # If conversion fails, do string comparison
         return pred_norm.lower().strip() == gt_norm.lower().strip()
@@ -208,8 +209,8 @@ CRITICAL: Extract only the core numerical value for the answer field. All explan
 OUTPUT FORMAT (strict JSON):
 ```json
 {{
-  "reasoning": "<show your step-by-step calculation here>",
-  "answer": "<ONLY the final numerical value, no units or formatting>"
+"reasoning": "<show your step-by-step calculation here>",
+"answer": "<ONLY the final numerical value, no units or formatting>"
 }}
 ``` """
 
@@ -364,6 +365,54 @@ def calculate_current_metrics(results):
     accuracy = correct / len(valid_answers)
     return accuracy, len(invalid_answers), total_processed
 
+def write_to_csv(results, filename="finqa_results.csv"):
+    """Write results to CSV file"""
+    fieldnames = ['id', 'question', 'ground_truth', 'predicted_answer', 'reasoning', 'gold_inds', 'program_re', 'success', 'is_parsable']
+    
+    with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        
+        for result in results:
+            # Convert lists to string for CSV
+            csv_result = result.copy()
+            csv_result['gold_inds'] = json.dumps(result['gold_inds']) if result['gold_inds'] else "[]"
+            
+            # Clean up text fields to avoid CSV issues
+            for field in ['question', 'reasoning']:
+                if csv_result[field]:
+                    csv_result[field] = str(csv_result[field]).replace('"', '""').replace('\n', ' ')
+            
+            writer.writerow(csv_result)
+
+def write_metrics_to_csv(metrics, filename="finqa_metrics_log.csv"):
+    fieldnames = [
+        "accuracy", "successful", "invalid_incorrect", "correct"
+    ]
+    file_exists = os.path.isfile(filename)
+    with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        if not file_exists:
+            writer.writeheader()
+        # Only keep the relevant fields from metrics
+        filtered_metrics = {k: metrics[k] for k in fieldnames if k in metrics}
+        writer.writerow(filtered_metrics)
+
+def write_simple_metrics_to_csv(steps, successful, unresolved, correct, invalid_incorrect, filename="student_metrics.csv"):
+    fieldnames = [
+        "Steps", "Successful samples", "Unresolved samples", "Correct samples", "Invalid/Incorrect cases"
+    ]
+    with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(fieldnames)
+        writer.writerow([
+            steps,
+            successful,
+            unresolved,
+            correct,
+            invalid_incorrect
+        ])
+
 def create_combined_dataset(train_data, val_data, total_samples=1000):
     """Create a combined dataset with samples from both train and validation"""
     # Calculate how many samples to take from each split
@@ -383,7 +432,6 @@ def create_combined_dataset(train_data, val_data, total_samples=1000):
     
     # Combine samples with source information
     combined_samples = []
-    
     for idx in train_indices:
         sample = train_data[idx]
         sample_dict = dict(sample)
@@ -412,10 +460,10 @@ def run_1000_sample_evaluation(train_data, val_data, max_workers=10):
     
     # Create combined dataset
     combined_data = create_combined_dataset(train_data, val_data, 1000)
-    
     print(f"Created combined dataset with {len(combined_data)} samples")
     
     results = []
+    csv_filename = "finqa_1000_samples_results.csv"
     
     print(f"Starting evaluation with {max_workers} workers...")
     print("=" * 80)
@@ -432,17 +480,29 @@ def run_1000_sample_evaluation(train_data, val_data, max_workers=10):
                 # Live logging every 5 samples
                 if (i + 1) % 5 == 0 or (i + 1) == len(combined_data):
                     current_accuracy, invalid_count, total_processed = calculate_current_metrics(results)
-                    
+                    successful = sum(1 for r in results if r['success'] and r['is_parsable'])
+                    unresolved = sum(1 for r in results if not r['success'] or not r['is_parsable'])
+                    correct = sum(1 for r in results if r['success'] and r['is_parsable'] and are_answers_equivalent(r['predicted_answer'], r['ground_truth']))
+                    invalid_incorrect = successful - correct + unresolved
+                    # Write current results to CSV
+                    write_to_csv(results, csv_filename)
+                    # Log metrics to metrics CSV
+                    metrics_row = {
+                        "step": i + 1,
+                        "accuracy": f"{current_accuracy*100:.2f}",
+                        "successful": successful,
+                        "invalid_incorrect": invalid_incorrect,
+                        "correct": correct
+                    }
+                    write_metrics_to_csv(metrics_row)
                     print(f"\n--- Progress Update: {i + 1}/{len(combined_data)} samples processed ---")
                     print(f"Current Accuracy: {current_accuracy:.4f} ({current_accuracy*100:.2f}%)")
-                    print(f"Invalid Answers: {invalid_count}")
-                    print(f"Valid Answers: {total_processed - invalid_count}")
-                    
+                    print(f"Successful samples: {successful} ({successful/total_processed*100:.2f}%)")
+                    print(f"Unresolved samples: {unresolved} ({unresolved/total_processed*100:.2f}%)")
                     # Show last 5 sample IDs
                     recent_samples = results[-5:]
                     sample_ids = [r['id'] for r in recent_samples]
                     print(f"Recent Sample IDs: {sample_ids}")
-                    
                     # Show details of the most recent sample
                     if results:
                         last_result = results[-1]
@@ -472,7 +532,10 @@ def run_1000_sample_evaluation(train_data, val_data, max_workers=10):
                     'is_parsable': False
                 })
     
-    # Save results to file
+    # Final CSV write
+    write_to_csv(results, csv_filename)
+    
+    # Save results to JSON file as well
     results_file = "finqa_1000_samples_results.json"
     with open(results_file, 'w') as f:
         json.dump(results, f, indent=2)
@@ -489,7 +552,8 @@ def run_1000_sample_evaluation(train_data, val_data, max_workers=10):
     print(f"Invalid/unparsable answers: {final_invalid_count}")
     print(f"Final accuracy (on valid answers): {final_accuracy:.4f} ({final_accuracy*100:.2f}%)")
     print(f"Success rate: {(total_processed - final_invalid_count)/total_processed*100:.2f}%")
-    print(f"Results saved to: {results_file}")
+    print(f"Results saved to CSV: {csv_filename}")
+    print(f"Results saved to JSON: {results_file}")
     print(f"=" * 80)
     
     # Show some examples of invalid answers
@@ -504,6 +568,5 @@ def run_1000_sample_evaluation(train_data, val_data, max_workers=10):
 if __name__ == "__main__":
     print("Running evaluation on 1000 samples from both train and validation splits...")
     results, accuracy = run_1000_sample_evaluation(train_data, val_data, max_workers=10)
-    
     print(f"\nEvaluation completed!")
     print(f"Final accuracy: {accuracy:.4f} ({accuracy*100:.2f}%)")

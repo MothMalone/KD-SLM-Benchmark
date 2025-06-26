@@ -20,8 +20,8 @@ os.environ["WANDB_API_KEY"] = "1494f76f0db1fdaee413a37d8943d3d1595ebf50"
 wandb.login()
 wandb.init(
     project="KD-SLM",
-    id="casehold-distill-run01",     
-    name="Llama3.2-1B-Casehold-Distill", 
+    id="casehold-distill-L3-family",     
+    name="Llama3.2-3B-to-1B-Casehold-Distill", 
     resume="allow"                   
 )
 
@@ -34,7 +34,7 @@ config = {
         "name": "MothMalone/SLMS-KD-Benchmarks"
     }, 
     "models": {
-        "teacher": "meta-llama/Llama-2-13b-hf",
+        "teacher": "meta-llama/Llama-3.2-3B",
         "student": "meta-llama/Llama-3.2-1B"
     },
     "tokenizer": {
@@ -57,8 +57,8 @@ config = {
     },
     "training": {
         "report_to": "wandb",
-        "output_dir": "./results-casehold-distill",
-        "hub_model_id": "MothMalone/Llama3.2-1B-Casehold-Distilled",  
+        "output_dir": "./results-casehold-distill-new",
+        "hub_model_id": "MothMalone/Llama3.2-3B-to-1B-Casehold-Distilled",  
         "push_to_hub": True,
         "hub_strategy": "checkpoint",
         "num_train_epochs": 10,
@@ -139,13 +139,13 @@ model_kwargs = {"torch_dtype": torch.bfloat16}
 if config["model_config"]["use_flash_attention"]:
     model_kwargs["attn_implementation"] = "flash_attention_2"
     
-def pad_logits(student_logits, teacher_logits):
-    student_size, teacher_size = student_logits.size(-1), teacher_logits.size(-1)
-    if student_size != teacher_size:
-        pad_size = abs(student_size - teacher_size)
-        pad_tensor = torch.zeros((*teacher_logits.shape[:-1], pad_size), dtype=teacher_logits.dtype, device=teacher_logits.device)
-        return (torch.cat([student_logits, pad_tensor], dim=-1), teacher_logits) if student_size < teacher_size else (student_logits, torch.cat([teacher_logits, pad_tensor], dim=-1))
-    return student_logits, teacher_logits
+# def pad_logits(student_logits, teacher_logits):
+#     student_size, teacher_size = student_logits.size(-1), teacher_logits.size(-1)
+#     # if student_size != teacher_size:
+#     #     pad_size = abs(student_size - teacher_size)
+#     #     pad_tensor = torch.zeros((*teacher_logits.shape[:-1], pad_size), dtype=teacher_logits.dtype, device=teacher_logits.device)
+#     #     return (torch.cat([student_logits, pad_tensor], dim=-1), teacher_logits) if student_size < teacher_size else (student_logits, torch.cat([teacher_logits, pad_tensor], dim=-1))
+#     return student_logits, teacher_logits
 
 # NOTE: Remove quantization_config if you have enough GPU RAM (>40GB) for better performance
 student_model = AutoModelForCausalLM.from_pretrained(config["models"]["student"], 
@@ -155,9 +155,8 @@ student_model = AutoModelForCausalLM.from_pretrained(config["models"]["student"]
 teacher_model = AutoModelForCausalLM.from_pretrained(config["models"]["teacher"], 
                                             # quantization_config = bits_and_bytes_config,  
                                             device_map = "auto")
-student_model.resize_token_embeddings(len(tokenizer))
-teacher_model.resize_token_embeddings(len(tokenizer))
-
+# student_model.resize_token_embeddings(len(tokenizer))
+# teacher_model.resize_token_embeddings(len(tokenizer))
 
 
 assert student_model.config.vocab_size == len(tokenizer)
@@ -184,7 +183,7 @@ class LogitsTrainer(SFTTrainer):
 
     def distillation_loss(self, model, student_logits, teacher_logits, inputs, original_loss):
         device = next(model.parameters()).device
-        student_logits, teacher_logits = pad_logits(student_logits.to(device), teacher_logits.to(device))
+        # student_logits, teacher_logits = pad_logits(student_logits.to(device), teacher_logits.to(device))
         
         student_logits_scaled = student_logits / config["distillation"]["temperature"]
         teacher_logits_scaled = teacher_logits / config["distillation"]["temperature"]

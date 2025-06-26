@@ -89,8 +89,8 @@ bits_and_bytes_config = BitsAndBytesConfig(
 pubmed_ds = load_dataset(config['dataset']['name'], 'pubmedqa')
 dataset = pubmed_ds['train']
 print(f"Total dataset size: {len(dataset)}")
-dataset = dataset.select(range(1000))  # For quick test, use 1000 samples
-print(f"Limited dataset size: {len(dataset)}")
+# dataset = dataset.select(range(1000))  # For quick test, use 1000 samples
+# print(f"Limited dataset size: {len(dataset)}")
 tokenizer = AutoTokenizer.from_pretrained(config["models"]["teacher"])
 tokenizer.pad_token = tokenizer.eos_token
 tokenizer.pad_token_id = tokenizer.eos_token_id
@@ -99,24 +99,24 @@ def pubmed_format(row):
     question = f"""
     {DATASET_CONTEXT}
     Given the following question from the PubMedQA dataset:
-    ques: {row['ques']}
+    question: {row['question']}
     context: {row['context']}
     long_answer: {row['long_answer']}
     Please provide the final decision: \"yes\", \"no\", or \"maybe\".
     """
-    return {'ques': question}
+    return {'query': question}
 
 dataset = dataset.map(pubmed_format)
 dataset = dataset.remove_columns(['question', 'context', 'long_answer', 'final_decision'])
 
 def tokenize_function(batch):
-    enc = tokenizer(batch["ques"],
+    enc = tokenizer(batch["query"],
                     truncation=True,
                     padding="max_length",
                     max_length=config["tokenizer"]["max_length"])
     enc["labels"] = enc["input_ids"].copy()
     return enc
-tokenized_dataset = dataset.map(tokenize_function, batched=True, remove_columns=["quest"])
+tokenized_dataset = dataset.map(tokenize_function, batched=True, remove_columns=["query"])
 
 train_test_split = tokenized_dataset.train_test_split(test_size=0.1, seed=42)
 tokenized_dataset = train_test_split
