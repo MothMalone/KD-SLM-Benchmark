@@ -4,6 +4,7 @@ import dotenv
 import os
 import warnings
 import instructor
+from typing import Literal
 from pydantic import BaseModel, Field
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, confusion_matrix
 import numpy as np
@@ -12,11 +13,9 @@ import pandas as pd
 warnings.filterwarnings("ignore")
 
 class CaseholdAnswer(BaseModel):
-    answer: int = Field(
-        None,
-        description="The index of the correct holding statement, which can be 0, 1, 2, 3, or 4.",
-        ge=0,
-        le=4
+    answer: Literal[0, 1, 2, 3, 4] = Field(
+        ...,
+        description="The index of the correct holding statement (must be one of 0, 1, 2, 3, or 4)."
     )
 
 dotenv.load_dotenv('../../.env')
@@ -36,7 +35,7 @@ to the citing text. The four incorrect answers are other holding
 statements.
 """
 
-TEACHER_MODEL_ID = "llama2:13b"
+TEACHER_MODEL_ID = "xuananle/distill-CaseHold"
 
 client = instructor.from_openai(
     OpenAI(
@@ -75,7 +74,7 @@ def predict_answer(case_data):
             top_p=1,
             max_retries=3,  
         )
-        print(f"Predicted answer for case: {completion.answer}")
+        print(completion)
         return completion.answer
     
     except Exception as e:
