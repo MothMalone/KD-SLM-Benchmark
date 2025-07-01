@@ -93,7 +93,7 @@ def main(model_name, sample_size, dataset_path, dataset_name, split ,gpu_poor, q
 
     y_true = []
     y_pred = []
-    metrics_df = pd.DataFrame(columns=["Accuracy", "Precision", "Recall", "F1 Score", "Macro F1 Score", "Invalid Cases"])
+    metrics_df = pd.DataFrame(columns=["Accuracy", "Precision", "Recall", "F1 Score", "Macro F1 Score"])
 
     for i, row in enumerate(ds):
         prompt = f"""
