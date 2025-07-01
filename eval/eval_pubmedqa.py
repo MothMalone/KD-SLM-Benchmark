@@ -52,7 +52,7 @@ def main(model_name, sample_size, dataset_path, dataset_name, split ,gpu_poor, q
 
     ds = datasets.load_dataset(dataset_path, dataset_name)
     if split:
-        ds = ds['train'].select(range(sample_size))
+        ds = ds['test'].select(range(sample_size))
     else:
         ds = ds.select(range(sample_size))
     if gpu_poor:
