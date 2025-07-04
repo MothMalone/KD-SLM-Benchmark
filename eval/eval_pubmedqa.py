@@ -24,8 +24,7 @@ torch.cuda.empty_cache()
 transformers.logging.set_verbosity_info()
 warnings.filterwarnings("ignore")
 load_dotenv('../.env')
-wandb.login(key = os.environ['WANDB_API_KEY'])
-login(os.environ['HF_TOKEN'])
+
 
 class PubmedqaAnswer(Enum):
     yes = "yes"
@@ -55,6 +54,13 @@ def main(model_name, sample_size, dataset_path, dataset_name, split ,gpu_poor, q
         ds = ds['test'].select(range(sample_size))
     else:
         ds = ds.select(range(sample_size))
+
+    # Load tokenizer first
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+        tokenizer.pad_token_id = tokenizer.eos_token_id    
+    
     if gpu_poor:
         if quant_mode == "4bit":
             bits_and_bytes_config = BitsAndBytesConfig(
@@ -63,37 +69,39 @@ def main(model_name, sample_size, dataset_path, dataset_name, split ,gpu_poor, q
                 bnb_4bit_use_double_quant=True,
                 bnb_4bit_compute_dtype=torch.bfloat16,
             )
-            model = AutoModelForCausalLM.from_pretrained(model_name, quantization_config = bits_and_bytes_config ,device_map = "auto") 
+
+            # Pass the quantization config to outlines
+            model = outlines.models.transformers(
+                model_name, 
+                model_kwargs={"quantization_config": bits_and_bytes_config, "device_map": "auto"}
+            )
         else:
-            model = AutoModelForCausalLM.from_pretrained(
+            model = outlines.models.transformers(
                 model_name,
-                load_in_8bit=True,
-                device_map="auto",
+                model_kwargs={"load_in_8bit": True, "device_map": "auto"}
             )
     else: 
         print("Running in full precision")
-        model = AutoModelForCausalLM.from_pretrained(model_name, device_map = "auto") 
-        tokenizer = AutoTokenizer.from_pretrained(model_name, device_map = "auto")        
+        model = outlines.models.transformers(
+            model_name, 
+            model_kwargs={"device_map": "auto"}
+        )
     
-    tokenizer = AutoTokenizer.from_pretrained(model_name, device_map = "auto")
-    
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-        tokenizer.pad_token_id = tokenizer.eos_token_id    
-
-
-    model =  outlines.from_transformers(model, tokenizer)
     label_mapping = {
         "yes": 1,
         "no": 0,
         "maybe": 2
     }
     def encode_labels(label):
+        if isinstance(label, Enum):
+            label = label.value
         return label_mapping.get(label, -1)
 
     y_true = []
     y_pred = []
     metrics_df = pd.DataFrame(columns=["Accuracy", "Precision", "Recall", "F1 Score", "Macro F1 Score"])
+
+    generator = outlines.generate.choice(model, ["yes", "no", "maybe"])
 
     for i, row in enumerate(ds):
         prompt = f"""
@@ -102,7 +110,8 @@ def main(model_name, sample_size, dataset_path, dataset_name, split ,gpu_poor, q
             Long Answer: {row['long_answer']}
             Give me the final decision: yes, no or maybe
         """
-        predicted_label = model(prompt, PubmedqaAnswer)
+        predicted_label = generator(prompt)
+        
         y_true.append(encode_labels(row['final_decision']))
         y_pred.append(encode_labels(predicted_label))
         if (i + 1) % 10 == 0 or (i + 1) == len(ds):

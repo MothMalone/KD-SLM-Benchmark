@@ -1,0 +1,27 @@
+                    CaseHOLD is a multiple choice question answering task derived
+                    from legal citations in judicial rulings. The citing context from the
+                    judicial decision serves as the prompt for the question. The answer
+                    choices are holding statements derived from citations following
+                    text in a legal decision. The correct answer is the holding statement that corresponds
+                    to the citing text. The four incorrect answers are other holding
+                    statements.
+
+                    ### Task
+                    You are an expert legal AI tasked with identifying the correct holding statement index that matches the citing prompt from the CaseHOLD dataset, based on five provided holding options.
+
+                    ### Input
+                    - Citing Prompt: Drapeau’s cohorts, the cohort would be a “victim” of making the bomb. Further, firebombs are inherently dangerous. There is no peaceful purpose for making a bomb. Felony offenses that involve explosives qualify as “violent crimes” for purposes of enhancing the sentences of career offenders. See 18 U.S.C. § 924(e)(2)(B)(ii) (defining a “violent felony” as: “any crime punishable by imprisonment for a term exceeding one year ... that ... involves use of explosives”). Courts have found possession of a'bomb to be a crime of violence based on the lack of a nonviolent purpose for a bomb and the fact that, by its very nature, there is a substantial risk that the bomb would be used against the person or property of another. See United States v. Newman, 125 F.3d 863 (10th Cir.1997) (unpublished) (<HOLDING>); United States v. Dodge, 846 F.Supp. 181,
+                    - Holding Options (indexed 0 to 4):
+                    0. holding that possession of a pipe bomb is a crime of violence for purposes of 18 usc 3142f1
+                    1. holding that bank robbery by force and violence or intimidation under 18 usc  2113a is a crime of violence
+                    2. holding that sexual assault of a child qualified as crime of violence under 18 usc 16
+                    3. holding for the purposes of 18 usc  924e that being a felon in possession of a firearm is not a violent felony as defined in 18 usc  924e2b
+                    4. holding that a court must only look to the statutory definition not the underlying circumstances of the crime to determine whether a given offense is by its nature a crime of violence for purposes of 18 usc 16
+
+                    ### Instructions
+                    - Analyze the citing prompt and select the single holding statement index (0, 1, 2, 3, or 4) that most accurately corresponds to it.
+                    - Output **EXACTLY ONE NUMBER** (0, 1, 2, 3, or 4) in the response section below. Do not include any text, punctuation, or additional characters (e.g., no "Answer:", no commas, no letters).
+                    - If the correct match is unclear, choose the most relevant index based on legal context and similarity.
+                    - Failure to comply will result in an invalid response.
+
+                    ### Response
