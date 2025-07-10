@@ -1,0 +1,312 @@
+[
+    {
+        "paragraph_text": "Galvez is a Spanish surname .",
+        "question": "where does the last name galvez come from",
+        "original_nq_answers": [
+            {
+                "start": 12,
+                "end": 27,
+                "string": "Spanish surname"
+            }
+        ],
+        "prediction_text": "Hidalgo is a Spanish surname. Notable people with the surname include :"
+    },
+    {
+        "paragraph_text": "The winner of the Golden Boot was James Rodríguez .",
+        "question": "who was the top scorer in 2014 world cup",
+        "original_nq_answers": [
+            {
+                "start": 34,
+                "end": 49,
+                "string": "James Rodríguez"
+            }
+        ],
+        "prediction_text": "James Rodríguez"
+    },
+    {
+        "paragraph_text": "Hidalgo is a Spanish surname . Notable people with the surname include :",
+        "question": "where does the last name hidalgo come from",
+        "original_nq_answers": [
+            {
+                "start": 13,
+                "end": 20,
+                "string": "Spanish"
+            }
+        ],
+        "prediction_text": "The villain in the film is Dr. Maru, played by Spanish actor Javier Bardem."
+    },
+    {
+        "paragraph_text": "Principal photography on the film began in mid-July 2016 in New Orleans .",
+        "question": "where was when we first met netflix filmed",
+        "original_nq_answers": [
+            {
+                "start": 60,
+                "end": 71,
+                "string": "New Orleans"
+            }
+        ],
+        "prediction_text": "Tami Lynn ( born 1942, Gert Town, New Orleans, Louisiana, United States ) is an American soul singer. She scored a Top Ten hit on the UK Singles Chart in 1971, with the song `` I'm Gonna Run Away From You ''."
+    },
+    {
+        "paragraph_text": "The Republic of Korea has hosted the Games on two occasions :",
+        "question": "how many times has south korea held the winter olympics",
+        "original_nq_answers": [
+            {
+                "start": 46,
+                "end": 49,
+                "string": "two"
+            }
+        ],
+        "prediction_text": "The first Nobel Prize in Physics was awarded in 1901 to Wilhelm Conrad Röntgen, of Germany, who received 150,782 SEK, which is equal to 7,731,004 SEK in December 2007. John Bardeen is the only laureate to win the prize twice -- in 1956 and 1972. Maria Skłodowska - Curie also won two Nobel Prizes, for physics in 1903 and chemistry in 1911. William Lawrence Bragg was, until October 2014, the youngest ever Nobel laureate ; he won the prize in 1915 at the age of 25. Two women have won the prize : Curie and Maria Goeppert - Mayer ( 1963 ). As of 2017, the prize has been awarded to 206 individuals."
+    },
+    {
+        "paragraph_text": "St. Louis has been the home of four National Football League ( NFL ) franchises :",
+        "question": "how many nfl teams has st louis had",
+        "original_nq_answers": [
+            {
+                "start": 31,
+                "end": 35,
+                "string": "four"
+            }
+        ],
+        "prediction_text": "The fourth film of the series is scheduled to be released in 2017."
+    },
+    {
+        "paragraph_text": "The game is generally played at the site of the team holding the home advantage across the series .",
+        "question": "where is the 7th game of the world series played",
+        "original_nq_answers": [
+            {
+                "start": 29,
+                "end": 97,
+                "string": "at the site of the team holding the home advantage across the series"
+            }
+        ],
+        "prediction_text": "The 7th game of the World Series is played at the site of the team holding the home advantage across the series."
+    },
+    {
+        "paragraph_text": "De la Rosa is a Spanish surname , which means `` of the rose '' . It may refer to :",
+        "question": "where does the name de la rosa come from",
+        "original_nq_answers": [
+            {
+                "start": 16,
+                "end": 23,
+                "string": "Spanish"
+            }
+        ],
+        "prediction_text": "The villain in the film is Dr. Maru, played by Spanish actor Javier Bardem."
+    },
+    {
+        "paragraph_text": "It was confirmed on 25 January 2018 , that Dancing on Ice had been recommissioned for an eleventh series to air in 2019 .",
+        "question": "when is dancing on ice on the tv",
+        "original_nq_answers": [
+            {
+                "start": 115,
+                "end": 119,
+                "string": "2019"
+            }
+        ],
+        "prediction_text": "Villanova won the NCAA Men's Basketball Tournament in 1985. Villanova has won the NCAA Men's Basketball Tournament in 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 20"
+    },
+    {
+        "paragraph_text": "Queen Máxima of the Netherlands ( born Máxima Zorreguieta Cerruti ; 17 May 1971 ) is the wife of King Willem - Alexander .",
+        "question": "who is the king and queen of the netherlands",
+        "original_nq_answers": [
+            {
+                "start": 97,
+                "end": 120,
+                "string": "King Willem - Alexander"
+            },
+            {
+                "start": 0,
+                "end": 81,
+                "string": "Queen Máxima of the Netherlands ( born Máxima Zorreguieta Cerruti ; 17 May 1971 )"
+            }
+        ],
+        "prediction_text": "Queen Máxima of the Netherlands (born Máxima Zorreguieta Cerruti ; 17 May 1971 ) is the wife of King Willem - Alexander."
+    },
+    {
+        "paragraph_text": "Stevia ( / ˈstiːviə , ˈstɛviə / ) is a sweetener and sugar substitute extracted from the leaves of the plant species Stevia rebaudiana .",
+        "question": "where does stevia in the raw come from",
+        "original_nq_answers": [
+            {
+                "start": 85,
+                "end": 134,
+                "string": "the leaves of the plant species Stevia rebaudiana"
+            }
+        ],
+        "prediction_text": "Stevia is a sweetener extracted from the leaves of the plant species Stevia rebaudiana."
+    },
+    {
+        "paragraph_text": "A cell division under microscope was first discovered by German botanist Hugo von Mohl in 1835 as he worked over Green algae Cladophora glomerata .",
+        "question": "who discovered cells divide to make new cells",
+        "original_nq_answers": [
+            {
+                "start": 73,
+                "end": 86,
+                "string": "Hugo von Mohl"
+            }
+        ],
+        "prediction_text": "The first cell division was discovered by German botanist Hugo von Mohl in 1835 as he worked over Green algae Cladophora glomerata."
+    },
+    {
+        "paragraph_text": "The following 3 pages are in this category , out of 3 total . This list may not reflect recent changes ( learn more ) .",
+        "question": "how many nuclear power plants in washington state",
+        "original_nq_answers": [
+            {
+                "start": 14,
+                "end": 15,
+                "string": "3"
+            }
+        ],
+        "prediction_text": "The first Nobel Prize in Physics was awarded in 1901 to Wilhelm Conrad Röntgen, of Germany, who received 150,782 SEK, which is equal to 7,731,004 SEK in December 2007. John Bardeen is the only laureate to win the prize twice -- in 1956 and 1972. Maria Skłodowska - Curie also won two Nobel Prizes, for physics in 1903 and chemistry in 1911. William Lawrence Bragg was, until October 2014, the youngest ever Nobel laureate ; he won the prize in 1915 at the age of 25. Two women have won the prize : Curie and Maria Goeppert - Mayer ( 1963 ). As of 2017, the prize has been awarded to 206 individuals."
+    },
+    {
+        "paragraph_text": "`` Bobby 's Girl '' is a song and single written by Gary Klein and Henry Hoffman and performed by American teenage singer , Marcie Blane .",
+        "question": "who sang i want to be bobbys girl",
+        "original_nq_answers": [
+            {
+                "start": 124,
+                "end": 136,
+                "string": "Marcie Blane"
+            }
+        ],
+        "prediction_text": "Bobby's Girl is a song and single written by Gary Klein and Henry Hoffman and performed by American teenage singer, Marcie Blane."
+    },
+    {
+        "paragraph_text": "It rises to the east of Royton and runs west past Chadderton , Middleton and Blackley before merging with the River Irwell in Manchester city centre .",
+        "question": "where does the river irk start and finish",
+        "original_nq_answers": [
+            {
+                "start": 16,
+                "end": 30,
+                "string": "east of Royton"
+            },
+            {
+                "start": 93,
+                "end": 148,
+                "string": "merging with the River Irwell in Manchester city centre"
+            }
+        ],
+        "prediction_text": "The river irk begins in the north of Manchester city centre and runs west past Chadderton, Middleton and Blackley before merging with the River Irwell in Manchester city centre."
+    },
+    {
+        "paragraph_text": "`` Just When I Needed You Most '' is the title of a 1979 hit single by the American singer - songwriter Randy VanWarmer .",
+        "question": "who is the original singer of just when i needed you most",
+        "original_nq_answers": [
+            {
+                "start": 104,
+                "end": 119,
+                "string": "Randy VanWarmer"
+            }
+        ],
+        "prediction_text": "Randy VanWarmer"
+    },
+    {
+        "paragraph_text": "In regions where daylight saving time is used , it commences on the second Sunday of March , and standard time restarts on the first Sunday in November .",
+        "question": "when does canada switch to daylight savings time",
+        "original_nq_answers": [
+            {
+                "start": 64,
+                "end": 90,
+                "string": "the second Sunday of March"
+            }
+        ],
+        "prediction_text": "on the second Sunday of March, and standard time restarts on the first Sunday in November."
+    },
+    {
+        "paragraph_text": "Male pattern hair loss is believed to be due to a combination of genetics and the male hormone dihydrotestosterone . The cause in female pattern hair loss remains unclear .",
+        "question": "where do you get male pattern baldness from",
+        "original_nq_answers": [
+            {
+                "start": 48,
+                "end": 114,
+                "string": "a combination of genetics and the male hormone dihydrotestosterone"
+            }
+        ],
+        "prediction_text": "Male pattern baldness is caused by a combination of genetics and the male hormone dihydrotestosterone. The cause in female pattern baldness remains unclear."
+    },
+    {
+        "paragraph_text": "Tyler Perry has confirmed that in A Madea Family Funeral ( 2018 ) Madea has another brother named Heathrow ( Also played by Perry ) . A Vietnam war veteran .",
+        "question": "when does madea's family funeral come out",
+        "original_nq_answers": [
+            {
+                "start": 59,
+                "end": 63,
+                "string": "2018"
+            }
+        ],
+        "prediction_text": "The Miz and Mrs. will premiere in 2018."
+    },
+    {
+        "paragraph_text": "Kate Warne ( 1833 -- January 28 , 1868 ) was the first female detective , in 1856 , in the Pinkerton Detective Agency and the United States .",
+        "question": "who was the pinkerton detective agency's first female detective",
+        "original_nq_answers": [
+            {
+                "start": 0,
+                "end": 10,
+                "string": "Kate Warne"
+            }
+        ],
+        "prediction_text": "Kate Warne ( 1833 -- January 28, 1868 ) was the first female detective, in 1856, in the Pinkerton Detective Agency and the United States."
+    },
+    {
+        "paragraph_text": "According to the bible , both the first shattered set and the second unbroken set were stored in the Ark of the Covenant ( the Aron Habrit in Hebrew ) .",
+        "question": "where is the tablet of the ten commandments",
+        "original_nq_answers": [
+            {
+                "start": 94,
+                "end": 120,
+                "string": "in the Ark of the Covenant"
+            }
+        ],
+        "prediction_text": "The Ark of the Covenant is located in the Ark of the Covenant."
+    },
+    {
+        "paragraph_text": "In Canada , the small business tax rate is the tax rate paid by a small business . As of 2016 , the small business tax rate is 10.5 % .",
+        "question": "what is small business tax rate in canada",
+        "original_nq_answers": [
+            {
+                "start": 127,
+                "end": 133,
+                "string": "10.5 %"
+            }
+        ],
+        "prediction_text": "Small business tax rate in canada is 10.5 %."
+    },
+    {
+        "paragraph_text": "The play was received with mixed results upon its release . The play was translated by Reverend J. Long for which he was sentenced to prison and charged with sedition .",
+        "question": "who translated the play neel darpan into english",
+        "original_nq_answers": [
+            {
+                "start": 87,
+                "end": 103,
+                "string": "Reverend J. Long"
+            }
+        ],
+        "prediction_text": "The play was translated by Reverend J. Long for which he was sentenced to prison and charged with sedition."
+    },
+    {
+        "paragraph_text": "`` Only Love Can Break Your Heart '' is a song written by Neil Young . It has been covered by many bands , including a 1990 single by Saint Etienne .",
+        "question": "who sings only love can break your heart",
+        "original_nq_answers": [
+            {
+                "start": 58,
+                "end": 68,
+                "string": "Neil Young"
+            }
+        ],
+        "prediction_text": "\"Lotta Love'' is a song written and recorded by Neil Young and released on his 1978 Comes a Time album. `` Lotta Love'' was also covered by Nicolette Larson in 1978. Larson's version reached No. 8 on the Billboard Hot 100 chart and No. 8 on the Cash Box Top 100 in February 1979. It also hit No. 1 on the Easy Listening chart and was a hit in Australia ( No. 11 ) and New Zealand ( No. 22 )."
+    },
+    {
+        "paragraph_text": "The season will be adapted for television by David Benioff and D.B. Weiss . Filming officially began on October 23 , 2017 . The season is scheduled to premiere in 2019 .",
+        "question": "when is season 8 for game of thrones",
+        "original_nq_answers": [
+            {
+                "start": 163,
+                "end": 167,
+                "string": "2019"
+            }
+        ],
+        "prediction_text": "Villanova won the NCAA Men's Basketball Tournament in 1985. Villanova has won the NCAA Men's Basketball Tournament in 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 20"
+    }
+]
